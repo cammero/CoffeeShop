@@ -8,6 +8,7 @@ import java.util.Set;
 
 public class Main {
 
+    //dealing with magic numbers with help from Matt Rowe
     public static int DRINKNAME = 0;
     public static int COST = 1;
     public static int PRICE = 2;
@@ -38,8 +39,10 @@ public class Main {
             }
             bufReader.close();
 
+            //create keySet that includes all of the names of the drinks
             Set<String> keySet = drinkInfo.keySet();
 
+            //loop through the keySet, ask user for number of cups of each drink sold, and store in hashMap
             HashMap<String, Integer> numberOfCupsSold = new HashMap<>();
             for (String key : keySet){
                 int result = numberOfCups(key);
@@ -48,6 +51,7 @@ public class Main {
 
             BufferedWriter bufWriter = new BufferedWriter(new FileWriter("dailyCoffeeHouseSales.txt"));
 
+            //for every drink (key) get the cost and price and perform calculations. Write them to the file.
             for (String key : keySet){
                 ArrayList<Double> drinkArray = drinkInfo.get(key);
                 Double cost = drinkArray.get(COST-1);
@@ -76,6 +80,7 @@ public class Main {
         String cups = scanner.nextLine();
         while (true) {
             try {
+                //make sure a valid non-negative number has been entered.
                 int numCups = Integer.parseInt(cups);
                 if (numCups < 0) {
                     System.out.println("Please enter a valid number of cups.");
