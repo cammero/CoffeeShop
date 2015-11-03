@@ -1,53 +1,95 @@
 package com.cameo;
+import java.io.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Main {
 
+    public static int DRINKNAME = 0;
+    public static int COST = 1;
+    public static int PRICE = 2;
     public static void main(String[] args) {
-        System.out.println("Coffee Shop Sales Calculator Program");
 
-        double totalSales = 0;
+        try {
+            BufferedReader bufReader = new BufferedReader(new FileReader("coffee.txt"));
+            //BufferedWriter bufWriter = new BufferedWriter (new FileWriter("dailyCoffeeHouseSales.txt"));
+            System.out.println("Coffee Shop Daily Sales Calculator Program");
 
-        String coffee = "coffee";
-        int cups = numberOfCups(coffee);
-        double price = priceOfDrink(coffee);
-        double drinkSales = sales(cups, price);
-        totalSales = totalSales + drinkSales;
+            //variables that we'll need to calculate and write to the file
+            double totalExpenses = 0;
+            double totalRevenue = 0;
+            double totalProfit = 0;
 
-        String hotCoco = "hot chocolate";
-        totalSales += sales (numberOfCups(hotCoco), priceOfDrink(hotCoco));
+            //Read each line of the coffee.txt file, use ; as the delimiter. Store the first element of
+            // each line as the key in a hashmap, and the second two in an ArrayList as the value of the key.
+            HashMap<String, ArrayList> drinkInfo = new HashMap<>();
+            ArrayList<Double> costAndPrice;
+            String line = bufReader.readLine();
+            while (line != null){
+                costAndPrice = new ArrayList<>();
+                String[] eachDrink = line.split(";");
+                costAndPrice.add(Double.parseDouble(eachDrink[COST]));
+                costAndPrice.add(Double.parseDouble(eachDrink[PRICE]));
+                drinkInfo.put(eachDrink[DRINKNAME], costAndPrice);
+                line = bufReader.readLine();
+            }
+            bufReader.close();
 
-        String tea = "tea";
-        totalSales += sales (numberOfCups(tea), priceOfDrink(tea));
+            Set<String> keySet = drinkInfo.keySet();
 
-        String capp = "cappuccino";
-        totalSales += sales (numberOfCups(capp), priceOfDrink(capp));
+            HashMap<String, Integer> numberOfCupsSold = new HashMap<>();
+            for (String key : keySet){
+                int result = numberOfCups(key);
+                numberOfCupsSold.put(key, result);
+            }
 
-        System.out.println("Total sales for the day are $"  + totalSales);
+            BufferedWriter bufWriter = new BufferedWriter(new FileWriter("dailyCoffeeHouseSales.txt"));
+
+            for (String key : keySet){
+                ArrayList<Double> drinkArray = drinkInfo.get(key);
+                Double cost = drinkArray.get(COST-1);
+                Double price = drinkArray.get(PRICE-1);
+                int cups = numberOfCupsSold.get(key);
+                double expenses = cost * cups;
+                double revenue = price * cups;
+                double profit = revenue - expenses;
+                bufWriter.write(key + ": Sold " + cups + ", Expenses $" + expenses + ", Revenue $" + revenue + ", Profit " + profit+ "\n");
+                totalExpenses += expenses;
+                totalRevenue += revenue;
+                totalProfit += profit;
+            }
+            bufWriter.write("Totals: Expenses $" + totalExpenses + ", Revenue $" + totalRevenue + ", Profit " + totalProfit);
+            bufWriter.close();
+            double totalSales = 0;
+        }
+        catch (IOException ioe){
+            System.out.println(ioe.toString());
+        }
     }
 
     private static int numberOfCups(String drink) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("How many cups of " + drink + " did you sell today?");
-        int cups = scanner.nextInt();
-        if (cups < 0) {
-            System.out.println("You have not entered a valid number of drinks sold. Your totals will not be accurate.");
+        String cups = scanner.nextLine();
+        while (true) {
+            try {
+                int numCups = Integer.parseInt(cups);
+                if (numCups < 0) {
+                    System.out.println("Please enter a valid number of cups.");
+                    cups = scanner.nextLine();
+                    continue;
+                }
+                break;
+            } catch (Exception e) {
+                System.out.println("Please enter a valid number of cups.");
+                cups = scanner.nextLine();
+            }
         }
-        return cups;
-    }
+        Integer numberOfCups = Integer.parseInt(cups);
 
-    private static double priceOfDrink(String drink) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("What does a cup of " + drink + " cost?");
-        double price = scanner.nextDouble();
-        if (price <= 0){
-            System.out.println("You have not entered a valid price. Your totals will not be accurate.");
-        }
-        return price;
-    }
-
-    private static double sales(int numberOfItems, double price) {
-        double dailySales = numberOfItems * price;
-        return dailySales;
+        return numberOfCups;
     }
 }
